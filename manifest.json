@@ -12,6 +12,12 @@
         "128": "pineapple.png"
       }
     },
+    "web_accessible_resources": [
+    {
+      "resources": ["dictionary.txt"],
+      "matches": ["<all_urls>"]
+    }
+  ],
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
