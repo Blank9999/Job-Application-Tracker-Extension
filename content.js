@@ -55,8 +55,8 @@ let timeout;
       .filter((keyword) => keyword);
   }
 
-  // Function to check if the page contains job-related keywords
-  async function analyzePageContent() {
+  // Function to check if the current content contains job-related keywords
+  async function analyzePageContent(currentContent) {
     const jobKeywords = await fetchKeywords();
     const lowerCaseContent = currentContent.toLowerCase();
 
