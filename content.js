@@ -60,7 +60,7 @@ let timeout;
     const jobKeywords = await fetchKeywords();
     const lowerCaseContent = currentContent.toLowerCase();
 
-    console.log("This is the content lowerCaseContent ", lowerCaseContent);
+    //console.log("This is the content lowerCaseContent ", lowerCaseContent);
     // Array to store all matching keywords, including duplicates
     const foundKeywords = [];
 
