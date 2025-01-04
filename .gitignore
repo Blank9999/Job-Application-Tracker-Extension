@@ -1,0 +1,89 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled source
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packaging
+*.jar
+*.war
+*.ear
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Ruby
+*.gem
+*.rbc
+.ruby-version
+
+# Go
+*.out
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build directories
+/dist/
+/build/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Dependency directories
+/node_modules/
+/jspm_packages/
+
+# Miscellaneous
+*.lock
+*.log
+*.tmp
+*.temp
+*.bak
+
+# Custom ignore rules
+# Add project-specific files and directories to ignore
