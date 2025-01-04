@@ -1,35 +1,40 @@
-let lastContent = '';
+let lastContent = "";
 let timeout;
 
 (function () {
   // Patterns to match job-related URLs
   const patterns = [
-    /apply/i,                     // Words like "Apply"
-    /job/i,                       // Words like "Job"
-    /careers/i,                   // Words like "Careers"
-    /linkedin\.com\/jobs/i,       // LinkedIn Jobs URL
-    /glassdoor\.com/i,            // Glassdoor
-    /greenhouse\.io/i,            // Greenhouse.io
+    /apply/i, // Words like "Apply"
+    /job/i, // Words like "Job"
+    /careers/i, // Words like "Careers"
+    /linkedin\.com\/jobs/i, // LinkedIn Jobs URL
+    /glassdoor\.com/i, // Glassdoor
+    /greenhouse\.io/i, // Greenhouse.io
   ];
 
   const observer = new MutationObserver(() => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => {
+    timeout = setTimeout(async () => {
       const currentContent = document.body.innerText;
 
       if (currentContent !== lastContent) {
         lastContent = currentContent; // Update lastContent
 
-        // Analyze the current content for keywords
-        analyzePageContent(currentContent).then(isJobSiteContent => {
+        try {
+          isJobSiteContent = await analyzePageContent(currentContent);
+
           if (isJobSiteContent) {
-           // console.log(currentContent);
-          } else {
-            console.log("No job-related keywords found in updated content.");
+            observer.disconnect();
+            if (isJobSiteURL) {
+              console.log("This page is a job application site!");
+            } else {
+              console.log("This page is not a job application site!");
+            }
           }
-        }).catch(error => {
+          console.log("Job-related content detected:", isJobSiteContent);
+        } catch (error) {
           console.error("Error analyzing current content:", error);
-        });
+        }
       }
     }, 300); // Wait 300ms before checking
   });
@@ -45,7 +50,10 @@ let timeout;
   async function fetchKeywords() {
     const response = await fetch(chrome.runtime.getURL("dictionary.txt"));
     const text = await response.text();
-    return text.split("\n").map(keyword => keyword.trim()).filter(keyword => keyword);
+    return text
+      .split("\n")
+      .map((keyword) => keyword.trim())
+      .filter((keyword) => keyword);
   }
 
   // Function to check if the current content contains job-related keywords
@@ -53,38 +61,25 @@ let timeout;
     const jobKeywords = await fetchKeywords();
     const lowerCaseContent = currentContent.toLowerCase();
 
+    console.log("This is the content lowerCaseContent ", lowerCaseContent);
     // Array to store all matching keywords, including duplicates
     const foundKeywords = [];
 
     // Check for each keyword's occurrences in the current content
-    jobKeywords.forEach(keyword => {
-      const regex = new RegExp(keyword, 'gi'); // Match substring, case-insensitive
+    jobKeywords.forEach((keyword) => {
+      const regex = new RegExp(keyword, "gi"); // Match substring, case-insensitive
       const matches = lowerCaseContent.match(regex); // Find all occurrences of the keyword
       if (matches) {
         foundKeywords.push(...matches); // Add all matches to the foundKeywords array
       }
     });
 
-   // console.log("Found Keywords (including substrings):", foundKeywords);
+    // console.log("Found Keywords (including substrings):", foundKeywords);
     return foundKeywords.length > 5; // Adjust threshold as needed
   }
 
   // Check for URL patterns
-  const isJobSiteURL = patterns.some(pattern => pattern.test(window.location.href)) && !isGoogleURL(window.location.href);
-
-  // Initial analysis of the page content
-  analyzePageContent(document.body.innerText).then(isJobSiteContent => {
-    const isJobSite = isJobSiteURL && isJobSiteContent;
-    console.log("URL match:", isJobSiteURL);
-    console.log("Content match:", isJobSiteContent);
-    if (isJobSite) {
-      console.log("This page is a job application site!");
-      chrome.runtime.sendMessage({ isJobSite: true });
-    } else {
-      console.log("This page is not a job application site.");
-      chrome.runtime.sendMessage({ isJobSite: false });
-    }
-  }).catch(error => {
-    console.error("Error analyzing initial page content:", error);
-  });
+  const isJobSiteURL =
+    patterns.some((pattern) => pattern.test(window.location.href)) &&
+    !isGoogleURL(window.location.href);
 })();

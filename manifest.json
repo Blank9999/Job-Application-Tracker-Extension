@@ -1,27 +1,28 @@
 {
-    "manifest_version": 3,
-    "name": "Job Application Tracker",
-    "version": "1.0",
-    "description": "Reads and prints the content of the current webpage.",
-    "permissions": ["activeTab", "scripting"],
-    "host_permissions": ["<all_urls>"],
-    "action": {
-      "default_icon": {
-        "16": "pineapple.png",
-        "48": "pineapple.png",
-        "128": "pineapple.png"
-      }
-    },
-    "web_accessible_resources": [
+  "manifest_version": 3,
+  "name": "Job Application Tracker",
+  "version": "1.0",
+  "description": "Reads and prints the content of the current webpage.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "pineapple.png",
+      "48": "pineapple.png",
+      "128": "pineapple.png"
+    }
+  },
+  "web_accessible_resources": [
     {
       "resources": ["dictionary.txt"],
       "matches": ["<all_urls>"]
     }
   ],
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }
