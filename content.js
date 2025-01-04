@@ -1,3 +1,6 @@
+let lastContent = '';
+let timeout;
+
 (function () {
   // Patterns to match job-related URLs
   const patterns = [
@@ -9,10 +12,35 @@
     /greenhouse\.io/i,            // Greenhouse.io
   ];
 
+  const observer = new MutationObserver(() => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      const currentContent = document.body.innerText;
+
+      if (currentContent !== lastContent) {
+        lastContent = currentContent; // Update lastContent
+
+        // Analyze the current content for keywords
+        analyzePageContent(currentContent).then(isJobSiteContent => {
+          if (isJobSiteContent) {
+           // console.log(currentContent);
+          } else {
+            console.log("No job-related keywords found in updated content.");
+          }
+        }).catch(error => {
+          console.error("Error analyzing current content:", error);
+        });
+      }
+    }, 300); // Wait 300ms before checking
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
   function isGoogleURL() {
     const googlePattern = /google\.com/i;
     return googlePattern.test(window.location.href);
   }
+
   // Function to fetch keywords from dictionary.txt
   async function fetchKeywords() {
     const response = await fetch(chrome.runtime.getURL("dictionary.txt"));
@@ -20,25 +48,35 @@
     return text.split("\n").map(keyword => keyword.trim()).filter(keyword => keyword);
   }
 
-  // Function to check if the page contains job-related keywords
-  async function analyzePageContent() {
+  // Function to check if the current content contains job-related keywords
+  async function analyzePageContent(currentContent) {
     const jobKeywords = await fetchKeywords();
-    const bodyText = document.body.innerText.toLowerCase();
-    
-    // Check for keywords in the page content
-    const foundKeywords = jobKeywords.filter(keyword => bodyText.includes(keyword));
+    const lowerCaseContent = currentContent.toLowerCase();
+
+    // Array to store all matching keywords, including duplicates
+    const foundKeywords = [];
+
+    // Check for each keyword's occurrences in the current content
+    jobKeywords.forEach(keyword => {
+      const regex = new RegExp(keyword, 'gi'); // Match substring, case-insensitive
+      const matches = lowerCaseContent.match(regex); // Find all occurrences of the keyword
+      if (matches) {
+        foundKeywords.push(...matches); // Add all matches to the foundKeywords array
+      }
+    });
+
+   // console.log("Found Keywords (including substrings):", foundKeywords);
     return foundKeywords.length > 5; // Adjust threshold as needed
   }
 
-  // Check for URL patternss
+  // Check for URL patterns
   const isJobSiteURL = patterns.some(pattern => pattern.test(window.location.href)) && !isGoogleURL(window.location.href);
 
-  // Analyze page content for keywords
-  analyzePageContent().then(isJobSiteContent => {
+  // Initial analysis of the page content
+  analyzePageContent(document.body.innerText).then(isJobSiteContent => {
     const isJobSite = isJobSiteURL && isJobSiteContent;
-    console.log(isJobSiteURL);
-    console.log(isJobSiteContent);
-    // Log the result
+    console.log("URL match:", isJobSiteURL);
+    console.log("Content match:", isJobSiteContent);
     if (isJobSite) {
       console.log("This page is a job application site!");
       chrome.runtime.sendMessage({ isJobSite: true });
@@ -47,6 +85,6 @@
       chrome.runtime.sendMessage({ isJobSite: false });
     }
   }).catch(error => {
-    console.error("Error analyzing page content:", error);
+    console.error("Error analyzing initial page content:", error);
   });
 })();
