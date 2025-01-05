@@ -1,8 +1,46 @@
 let lastContent = "";
 let timeout;
+let isJobSiteContent = false;
 
 (function () {
   // Patterns to match job-related URLs
+
+  function createPopup() {
+    const popup = document.createElement("div");
+    popup.id = "jobPopup";
+    popup.style.position = "fixed";
+    popup.style.bottom = "20px";
+    popup.style.right = "20px";
+    popup.style.width = "300px";
+    popup.style.padding = "20px";
+    popup.style.backgroundColor = "#f9f9f9";
+    popup.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+    popup.style.borderRadius = "10px";
+    popup.style.display = "none"; // Initially hidden
+    popup.style.zIndex = "9999";
+
+    popup.innerHTML = `
+      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application Detected!</div>
+      <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this </p>
+      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
+      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Add click event for the button
+    document.getElementById("popupButton").addEventListener("click", () => {
+      alert("Popup action triggered!");
+    });
+  }
+
+  function showPopup() {
+    const popup = document.getElementById("jobPopup");
+    if (popup) {
+      popup.style.display = "block";
+    }
+  }
+
   const patterns = [
     /apply/i, // Words like "Apply"
     /job/i, // Words like "Job"
@@ -27,6 +65,7 @@ let timeout;
             observer.disconnect();
             if (isJobSiteURL) {
               console.log("This page is a job application site!");
+              showPopup();
             } else {
               console.log("This page is not a job application site!");
             }
@@ -75,7 +114,6 @@ let timeout;
       }
     });
 
-    // console.log("Found Keywords (including substrings):", foundKeywords);
     return foundKeywords.length > 5; // Adjust threshold as needed
   }
 
@@ -83,4 +121,6 @@ let timeout;
   const isJobSiteURL =
     patterns.some((pattern) => pattern.test(window.location.href)) &&
     !isGoogleURL(window.location.href);
+
+  createPopup();
 })();
