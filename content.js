@@ -5,6 +5,17 @@ let isJobSiteContent = false;
 (function () {
   // Patterns to match job-related URLs
 
+  const data = [
+    ["SnowFlake", "Software Engineer Intern", "Toronto"],
+    ["RBC", "Software Engineer Intern", "Toronto"],
+    ["Scotiabank", "Data Analysis Intern", "Ottawa"],
+    ["TD", "Software Engineer Intern", "Kitchner"],
+  ];
+
+  // function convertToCSV(data) {
+  //   return data.map((row) => row.join(",")).join("\n");
+  // }
+
   function createPopup() {
     const popup = document.createElement("div");
     popup.id = "jobPopup";
@@ -22,11 +33,27 @@ let isJobSiteContent = false;
     popup.innerHTML = `
       <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application Detected!</div>
       <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this </p>
-      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
-      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
+      <button id="createNewFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
+      <button id="openFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
+      <label for="openExistingFileInput" style="display: none;"> <!-- Hidden file input inside a label -->
+        <input id="openExistingFileInput" type="file" accept=".csv" style="display: none;">
+      </label>
     `;
+    // <button id="openExistingFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
 
     document.body.appendChild(popup);
+
+    document
+      .getElementById("createNewFileBtn")
+      .addEventListener("click", createCSVAndDownload);
+
+    document.getElementById("openFileBtn").addEventListener("click", () => {
+      document.getElementById("openExistingFileInput").click();
+    });
+
+    document
+      .getElementById("openExistingFileInput")
+      .addEventListener("change", handleFileSelect);
 
     // Add click event for the button
     document.getElementById("popupButton").addEventListener("click", () => {
@@ -79,6 +106,109 @@ let isJobSiteContent = false;
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
+
+  function createCSVAndDownload() {
+    const csvContent = data.map((row) => row.join(",")).join("\n");
+    chrome.runtime.sendMessage(
+      {
+        type: "downloadCSV",
+        csvContent: csvContent,
+        filename: "job_data.csv", // Optional, specify the filename
+      },
+      (response) => {
+        if (response && response.success) {
+          console.log("CSV file downloaded successfully!");
+        } else {
+          console.error("Failed to download the CSV file.");
+        }
+      }
+    );
+  }
+
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      alert("No file selected!");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      const content = e.target.result;
+      console.log("File content:", content);
+      const updatedContent = appendDataToCSV(content);
+      console.log("The updated content is ", updatedContent);
+
+      await saveUpdatedFile(file, updatedContent);
+      saveUpdatedFileFallback(updatedContent);
+    };
+    reader.readAsText(file);
+  }
+
+  function appendDataToCSV(content) {
+    const rows = content.split("\n").map((row) => row.split(","));
+    console.log("Parsed CSV data:", rows);
+
+    // Append new data (example: appending a new job entry)
+    const newRow = ["Google", "Software Engineer Intern", "California"];
+    rows.push(newRow);
+
+    // Convert back to CSV format
+    return rows.map((row) => row.join(",")).join("\n");
+  }
+
+  async function saveUpdatedFile(file, updatedContent) {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: file.name,
+        types: [
+          {
+            description: "CSV Files",
+            accept: { "text/csv": [".csv"] },
+          },
+        ],
+      });
+
+      // Write the updated content to the file
+      const writableStream = await fileHandle.createWritable();
+      await writableStream.write(updatedContent);
+      await writableStream.close();
+    } catch (error) {
+      console.error("Failed to save file:", error);
+    }
+  }
+
+  function saveUpdatedFileFallback(updatedContent) {
+    chrome.runtime.sendMessage(
+      {
+        type: "updateCSV",
+        csvContent: updatedContent,
+      },
+      (response) => {
+        if (response && response.success) {
+          console.log("Updated CSV file downloaded successfully!");
+        } else {
+          console.error("Failed to download the updated CSV file.");
+        }
+      }
+    );
+  }
+
+  // function downloadUpdatedCSV(updatedContent) {
+  //   chrome.runtime.sendMessage(
+  //     {
+  //       type: "downloadCSV",
+  //       csvContent: updatedContent,
+  //     },
+  //     (response) => {
+  //       if (response && response.success) {
+  //         console.log("Updated CSV file downloaded successfully!");
+  //       } else {
+  //         console.error("Failed to download the updated CSV file.");
+  //       }
+  //     }
+  //   );
+  // }
 
   function isGoogleURL() {
     const googlePattern = /google\.com/i;
