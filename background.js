@@ -7,5 +7,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       saveAs: true,
     });
     sendResponse({ success: true });
+  } else if (request.type === "updateCSV") {
   }
 });
