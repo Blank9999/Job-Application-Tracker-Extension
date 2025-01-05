@@ -84,7 +84,6 @@ let isJobSiteContent = false;
     const googlePattern = /google\.com/i;
     return googlePattern.test(window.location.href);
   }
-
   // Function to fetch keywords from dictionary.txt
   async function fetchKeywords() {
     const response = await fetch(chrome.runtime.getURL("dictionary.txt"));
@@ -95,7 +94,6 @@ let isJobSiteContent = false;
       .filter((keyword) => keyword);
   }
 
-  // filler
   // Function to check if the current content contains job-related keywords
   async function analyzePageContent(currentContent) {
     const jobKeywords = await fetchKeywords();
