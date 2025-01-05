@@ -3,6 +3,8 @@ let timeout;
 let isJobSiteContent = false;
 
 (function () {
+  // Patterns to match job-related URLs
+
   function createPopup() {
     const popup = document.createElement("div");
     popup.id = "jobPopup";
@@ -20,18 +22,15 @@ let isJobSiteContent = false;
     popup.innerHTML = `
       <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application Detected!</div>
       <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this </p>
-      <button id="popupButtonCreate" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
-      <button id="popupButtonOpen" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
+      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
+      <button id="popupButton" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
     `;
 
     document.body.appendChild(popup);
 
-    document.getElementById("popupButtonCreate").addEventListener("click", () => {
-      alert("Create New File action triggered!");
-    });
-
-    document.getElementById("popupButtonOpen").addEventListener("click", () => {
-      alert("Open Existing File action triggered!");
+    // Add click event for the button
+    document.getElementById("popupButton").addEventListener("click", () => {
+      alert("Popup action triggered!");
     });
   }
 
@@ -60,24 +59,18 @@ let isJobSiteContent = false;
         lastContent = currentContent; // Update lastContent
 
         try {
-          const analysisResult = await analyzePageContent(currentContent);
-          const weakJob = analysisResult.weakJob;
-          const strongJob = analysisResult.strongJob;
-
-          const isJobSiteURL =
-            patterns.some((pattern) => pattern.test(window.location.href)) &&
-            !isGoogleURL(window.location.href);
-
-          isJobSiteContent = (weakJob && isJobSiteURL) || strongJob;
+          isJobSiteContent = await analyzePageContent(currentContent);
 
           if (isJobSiteContent) {
             observer.disconnect();
-            console.log("This page is a job application site!");
-            showPopup();
-          } else {
-            console.log("This page is not a job application site!");
+            if (isJobSiteURL) {
+              console.log("This page is a job application site!");
+              showPopup();
+            } else {
+              console.log("This page is not a job application site!");
+            }
           }
-          console.log("Job-related content detected:", analysisResult);
+          console.log("Job-related content detected:", isJobSiteContent);
         } catch (error) {
           console.error("Error analyzing current content:", error);
         }
@@ -91,7 +84,7 @@ let isJobSiteContent = false;
     const googlePattern = /google\.com/i;
     return googlePattern.test(window.location.href);
   }
-
+  // Function to fetch keywords from dictionary.txt
   async function fetchKeywords() {
     const response = await fetch(chrome.runtime.getURL("dictionary.txt"));
     const text = await response.text();
@@ -101,25 +94,31 @@ let isJobSiteContent = false;
       .filter((keyword) => keyword);
   }
 
+  // Function to check if the current content contains job-related keywords
   async function analyzePageContent(currentContent) {
     const jobKeywords = await fetchKeywords();
     const lowerCaseContent = currentContent.toLowerCase();
 
+    // console.log("This is the content lowerCaseContent ", lowerCaseContent);
+    // Array to store all matching keywords, including duplicates
     const foundKeywords = [];
 
+    // Check for each keyword's occurrences in the current content
     jobKeywords.forEach((keyword) => {
-      const regex = new RegExp(keyword, "gi");
-      const matches = lowerCaseContent.match(regex);
+      const regex = new RegExp(keyword, "gi"); // Match substring, case-insensitive
+      const matches = lowerCaseContent.match(regex); // Find all occurrences of the keyword
       if (matches) {
-        foundKeywords.push(...matches);
+        foundKeywords.push(...matches); // Add all matches to the foundKeywords array
       }
     });
 
-    return {
-      weakJob: foundKeywords.length > 5, // Adjust threshold as needed
-      strongJob: foundKeywords.length > 15, // Adjust threshold as needed
-    };
+    return foundKeywords.length > 15; // Adjust threshold as needed
   }
+
+  // Check for URL patterns
+  const isJobSiteURL =
+    patterns.some((pattern) => pattern.test(window.location.href)) &&
+    !isGoogleURL(window.location.href);
 
   createPopup();
 })();
