@@ -3,8 +3,11 @@
   "name": "Job Application Tracker",
   "version": "1.0",
   "description": "Reads and prints the content of the current webpage.",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "downloads"],
   "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
