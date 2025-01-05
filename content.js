@@ -121,4 +121,15 @@ let isJobSiteContent = false;
     !isGoogleURL(window.location.href);
 
   createPopup();
+
+  let title = document.title; // Get the <title> content
+
+  // Log the extracted job position and the location
+
+  console.log(title);
+
+  const currentURL = window.location.href;
+  
+  console.log(currentURL);   
+
 })();
