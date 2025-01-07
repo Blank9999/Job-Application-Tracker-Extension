@@ -6,15 +6,12 @@ let isJobSiteContent = false;
   // Patterns to match job-related URLs
 
   const data = [
-    ["SnowFlake", "Software Engineer Intern", "Toronto"],
-    ["RBC", "Software Engineer Intern", "Toronto"],
-    ["Scotiabank", "Data Analysis Intern", "Ottawa"],
-    ["TD", "Software Engineer Intern", "Kitchner"],
+    [title, currentURL],
   ];
 
-  // function convertToCSV(data) {
-  //   return data.map((row) => row.join(",")).join("\n");
-  // }
+  function convertToCSV(data) {
+    return data.map((row) => row.join(",")).join("\n");
+  }
 
   function createPopup() {
     const popup = document.createElement("div");
@@ -75,7 +72,7 @@ let isJobSiteContent = false;
     /linkedin\.com\/jobs/i, // LinkedIn Jobs URL
     /glassdoor\.com/i, // Glassdoor
     /greenhouse\.io/i, // Greenhouse.io
-  ];
+];
 
   const observer = new MutationObserver(() => {
     clearTimeout(timeout);
@@ -108,7 +105,7 @@ let isJobSiteContent = false;
   observer.observe(document.body, { childList: true, subtree: true });
 
   function createCSVAndDownload() {
-    const csvContent = data.map((row) => row.join(",")).join("\n");
+    const csvContent = convertToCSV(data);
     chrome.runtime.sendMessage(
       {
         type: "downloadCSV",
@@ -261,5 +258,6 @@ let isJobSiteContent = false;
   const currentURL = window.location.href;
   
   console.log(currentURL);   
+
 
 })();
