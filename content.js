@@ -6,12 +6,15 @@ let isJobSiteContent = false;
   // Patterns to match job-related URLs
 
   const data = [
-    [title, currentURL],
+    ["SnowFlake", "Software Engineer Intern", "Toronto"],
+    ["RBC", "Software Engineer Intern", "Toronto"],
+    ["Scotiabank", "Data Analysis Intern", "Ottawa"],
+    ["TD", "Software Engineer Intern", "Kitchner"],
   ];
 
-  function convertToCSV(data) {
-    return data.map((row) => row.join(",")).join("\n");
-  }
+  // function convertToCSV(data) {
+  //   return data.map((row) => row.join(",")).join("\n");
+  // }
 
   function createPopup() {
     const popup = document.createElement("div");
@@ -77,7 +80,7 @@ let isJobSiteContent = false;
     /linkedin\.com\/jobs/i, // LinkedIn Jobs URL
     /glassdoor\.com/i, // Glassdoor
     /greenhouse\.io/i, // Greenhouse.io
-];
+  ];
 
   const observer = new MutationObserver(() => {
     clearTimeout(timeout);
@@ -116,7 +119,7 @@ let isJobSiteContent = false;
   }
 
   function createCSVAndDownload() {
-    const csvContent = convertToCSV(data);
+    const csvContent = data.map((row) => row.join(",")).join("\n");
     chrome.runtime.sendMessage(
       {
         type: "downloadCSV",
@@ -259,16 +262,4 @@ let isJobSiteContent = false;
     !isGoogleURL(window.location.href);
 
   createPopup();
-
-  let title = document.title; // Get the <title> content
-
-  // Log the extracted job position and the location
-
-  console.log(title);
-
-  const currentURL = window.location.href;
-  
-  console.log(currentURL);   
-
-
 })();
