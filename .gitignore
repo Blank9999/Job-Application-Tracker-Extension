@@ -87,3 +87,4 @@ coverage/
 
 # Custom ignore rules
 # Add project-specific files and directories to ignore
+venv/
