@@ -242,7 +242,7 @@ let isJobSiteContent = false;
       }
     });
 
-    return foundKeywords.length > 5; // Adjust threshold as needed
+    return foundKeywords.length > 15; // Adjust threshold as needed
   }
 
   // Check for URL patterns
