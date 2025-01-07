@@ -10,3 +10,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "updateCSV") {
   }
 });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "pageData") {
+    console.log("Received page data from content.js:");
+    console.log("Title:", message.title);
+    console.log("URL:", message.currentURL);
+
+    // You can perform further actions with the data here
+
+    // Send a response back to content.js
+    sendResponse({ success: true });
+  }
+});
