@@ -45,7 +45,7 @@ let isJobSiteContent = false;
 
     document
       .getElementById("createNewFileBtn")
-      .addEventListener("click", createCSVAndDownload);
+      .addEventListener("click", createJobTrackerFile);
 
     document.getElementById("openFileBtn").addEventListener("click", () => {
       document.getElementById("openExistingFileInput").click();
@@ -63,6 +63,11 @@ let isJobSiteContent = false;
 
   function showPopup() {
     const popup = document.getElementById("jobPopup");
+
+    // document
+    //   .getElementById("createNewFileBtn")
+    //   .addEventListener("click", () => createJobTrackerFile(currentContent));
+
     if (popup) {
       popup.style.display = "block";
     }
@@ -106,6 +111,12 @@ let isJobSiteContent = false;
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
+
+  function createJobTrackerFile() {
+    const pageTitle = document.title;
+
+    chrome.runtime.sendMessage({ action: "sendTitle", title: pageTitle });
+  }
 
   function createCSVAndDownload() {
     const csvContent = data.map((row) => row.join(",")).join("\n");
