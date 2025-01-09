@@ -115,9 +115,13 @@ let isJobSiteContent = false;
   function createJobTrackerFile() {
     // const pageTitle = document.title;
     const pageContent = document.body.innerText;
-
-    console.log("The content is ", pageContent);
-    chrome.runtime.sendMessage({ action: "sendTitle", title: pageContent });
+    const pageUrl = window.location.href;
+    // console.log("The content is ", pageContent);
+    chrome.runtime.sendMessage({
+      action: "sendTitle",
+      title: pageContent,
+      url: pageUrl,
+    });
   }
 
   function createCSVAndDownload() {

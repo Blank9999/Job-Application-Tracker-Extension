@@ -1,8 +1,8 @@
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import spacy
-nlp = spacy.load("en_core_web_trf")
+# import spacy
+# nlp = spacy.load("en_core_web_trf")
 
 app = Flask(__name__)
 CORS(app)
@@ -17,41 +17,43 @@ def save_title():
         return jsonify({"status": "error", "message": "No JSON data sent"}), 400
     
     page_title = data.get('title')
+    page_url = data.get('url')
 
+    print("The page url is ",page_url)
     if not page_title:
         return jsonify({"status": "error", "message": "No title provided"}), 400
     
     # print(f"Received page title:{page_title}")
 
-    doc = nlp(page_title)
+    # doc = nlp(page_title)
 
-    entities = {"ORG": [], "GPE": [], "TITLE": []}
+    entities = {"ORG": [], "GPE": [], "TITLE": [],"URL": page_url}
     
-    print([(w.text, w.pos_) for w in doc])
+    # print([(w.text, w.pos_) for w in doc])
 
-    for ent in doc.ents:
-        if ent.label_ == "ORG":
-            entities["ORG"].append(ent.text)  # Company name
-        elif ent.label_ == "GPE":
-            entities["GPE"].append(ent.text)  # Location
-        elif ent.label_ == "PERSON":  # Job title approximation (customize if needed)
-            entities["TITLE"].append(ent.text)
+    # for ent in doc.ents:
+    #     if ent.label_ == "ORG":
+    #         entities["ORG"].append(ent.text)  # Company name
+    #     elif ent.label_ == "GPE":
+    #         entities["GPE"].append(ent.text)  # Location
+    #     elif ent.label_ == "PERSON":  # Job title approximation (customize if needed)
+    #         entities["TITLE"].append(ent.text)
 
     # Attempt pattern matching for job title
-    job_title = None
-    for token in doc:
-        if token.pos_ == "NOUN" and "job" in token.text.lower():
-            job_title = token.text
-            break
+    # job_title = None
+    # for token in doc:
+    #     if token.pos_ == "NOUN" and "job" in token.text.lower():
+    #         job_title = token.text
+    #         break
 
-    # Combine results
-    extracted_data = {
-        "company_name": entities["ORG"][0] if entities["ORG"] else None,
-        "location": entities["GPE"][0] if entities["GPE"] else None,
-        "job_title": job_title or (entities["TITLE"][0] if entities["TITLE"] else None)
-    }
+    # # Combine results
+    # extracted_data = {
+    #     "company_name": entities["ORG"][0] if entities["ORG"] else None,
+    #     "location": entities["GPE"][0] if entities["GPE"] else None,
+    #     "job_title": job_title or (entities["TITLE"][0] if entities["TITLE"] else None)
+    # }
 
-    print(f"Extracted data: {extracted_data}")
+    print(f"Extracted data: {entities}")
     return jsonify({"status": "success", "message": "Title saved successfully!"})
 
 
