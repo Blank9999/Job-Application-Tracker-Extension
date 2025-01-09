@@ -21,7 +21,7 @@ def save_title():
     if not page_title:
         return jsonify({"status": "error", "message": "No title provided"}), 400
     
-    print(f"Received page title:{page_title}")
+    # print(f"Received page title:{page_title}")
 
     doc = nlp(page_title)
 

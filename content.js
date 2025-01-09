@@ -113,9 +113,11 @@ let isJobSiteContent = false;
   observer.observe(document.body, { childList: true, subtree: true });
 
   function createJobTrackerFile() {
-    const pageTitle = document.title;
+    // const pageTitle = document.title;
+    const pageContent = document.body.innerText;
 
-    chrome.runtime.sendMessage({ action: "sendTitle", title: pageTitle });
+    console.log("The content is ", pageContent);
+    chrome.runtime.sendMessage({ action: "sendTitle", title: pageContent });
   }
 
   function createCSVAndDownload() {
