@@ -15,13 +15,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "sendTitle") {
     const pageTitle = request.title;
     const pageUrl = request.url;
+    const jobData = request.data;
 
     fetch("http://127.0.0.1:5000/save-title", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: pageTitle, url: pageUrl }),
+      body: JSON.stringify({ title: pageTitle, url: pageUrl, data: jobData }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -30,6 +31,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch((error) => {
         console.error("Error sending title to Flask backend:", error);
       });
+  } else if (request.action === "openJobTrackerFile") {
+    fetch("http://127.0.0.1:5000/fetch-title")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetched data:", data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+    window.open("http://127.0.0.1:5000/fetch-title", "_blank");
   }
 });
 
