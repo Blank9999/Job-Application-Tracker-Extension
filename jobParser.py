@@ -7,10 +7,7 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-
 load_dotenv()
-# url = "https://nwgttfuuheacpjjqhtsg.supabase.co"
-# key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53Z3R0ZnV1aGVhY3BqanFodHNnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNjE0MTgwMCwiZXhwIjoyMDUxNzE3ODAwfQ.OEvdFS7iG_6i5HD0DzE0HojLP07-pZUY0Z_6UuunyOs"
 url = os.getenv("API_URL")
 key = os.getenv("API_SERVICE_ROLE")
 supabase: Client = create_client(url, key)
@@ -31,17 +28,13 @@ def save_title():
     page_url = data.get('url')
     job_data = data.get('data')
 
-    # print(f"Job data: {job_data}")
-    # print("The page url is ",page_url)
     if not page_title:
         return jsonify({"status": "error", "message": "No title provided"}), 400
-    
-    # print(f"Received page title:{page_title}")
-
     # doc = nlp(page_title)
 
     entities = {"ORG": job_data['org_name'], "GPE": job_data['location'], "TITLE": job_data['job_title'],"URL": page_url}
-    fileName = job_data['file_name']
+    # fileName = job_data['file_name']
+    file_id = job_data['file_id']
     
     # print([(w.text, w.pos_) for w in doc])
 
@@ -68,19 +61,50 @@ def save_title():
     # }
 
     print(f"Extracted data: {entities}")
-    create_job_info_row(entities)
-    create_new_file(fileName)
+    add_existing_file_jobs(entities,file_id)
+    # create_new_file_job(entities,fileName)
     return jsonify({"status": "success", "message": "Title saved successfully!"})
 
 
-def create_new_file(file):
-    print("The new file to be created is ",file)
+def add_existing_file_jobs(entities, file_id):
+    job_id = create_job_info_row(entities)
 
+    print(f"This is the job id {job_id}")
+    print(f"This is the file id {file_id}")
+
+    mapping_response = supabase.table('file_to_jobs').insert({
+        "file_id": file_id,
+        "job_id": job_id
+    }).execute()
+
+    print("Successfully added to the file_to_jobs")
+
+def create_new_file_job(entities,file):
+    job_id = create_job_info_row(entities)
+    file_id = create_new_file(file)
+    
+    print(f"This is the job id {job_id}")
+    print(f"This is the file id {file_id}")
+
+    mapping_response = supabase.table('file_to_jobs').insert({
+        "file_id": file_id,
+        "job_id": job_id
+    }).execute()
+
+    print("Succesfuly added to the file_to_jobs")
+
+def create_new_file(file):
     response = supabase.table('file_name').insert({
         "file_name": file
     }).execute()
 
-    print("New file created successfully!")
+    if response and response.data:
+        job_id = response.data[0]['id']  # Extract the ID of the inserted job
+        print(f"New file created successfully! Response: {job_id}")
+        return job_id
+    else:
+        print(f"Failed to insert file . Response: {response}")
+        return None
 
 
 def create_job_info_row(data):
@@ -93,23 +117,27 @@ def create_job_info_row(data):
         "url": data['URL']
     }).execute()
 
-    print("Job info inserted successfully!")
+    if response and response.data:
+        job_id = response.data[0]['id']  # Extract the ID of the inserted job
+        print(f"Job info inserted successfully! Job ID: {job_id}")
+        return job_id
+    else:
+        print(f"Failed to insert job info. Response: {response}")
+        return None
 
-    # if response.get('error'):
-    #     print(f"Error: {response['error']}")
-    # else:
-    #     print("Job info inserted successfully!")
-    # if response.error is None:
-    # else:
-    #     print(f"Error inserting job info: {response.error}")
 
 @app.route('/fetch-title', methods=['GET'])
 def fetch_create_job_info_row():
-    response = supabase.table("job_info").select("*").execute()
+
+    response = supabase.from_('file_to_jobs').select('id, job_info(id,organization,job_title,location,url),file_name(id,file_name)').eq('file_id', 6).execute()
     data = response.data
-    # return jsonify(response.data), 200
     return render_template('job_table.html', jobs=data)
 
+@app.route('/file-name', methods=['GET'])
+def fetch_file_name():
+    response = supabase.table("file_name").select("*").execute()
+    data = response.data
+    return jsonify(data), 200
 
 
 if __name__ == "__main__":
