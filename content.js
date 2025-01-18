@@ -40,6 +40,7 @@ let isJobSiteContent = false;
     <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this?</p>
     <button id="createNewFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Add to a New File</button>
     <button id="openFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Add to an Existing File</button>
+    <button id="openExistingFile" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open your Files</button>
   `;
 
     // Append the content to the popup
@@ -53,6 +54,43 @@ let isJobSiteContent = false;
     document
       .getElementById("openFileBtn")
       .addEventListener("click", openJobForm);
+
+    document
+      .getElementById("openExistingFile")
+      .addEventListener("click", async () => {
+        const response = await fetch("http://127.0.0.1:5000/file-name");
+        const fileNames = await response.json();
+
+        popup.innerHTML = `
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application</div>
+          <p style="margin: 0;">These are your files. Select one to view all your applications:</p>
+          <select id="exitingFileName" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+            ${fileNames
+              .map(
+                (file) =>
+                  `<option value="${file.id}">${file.file_name}</option>`
+              )
+              .join("")}
+          </select>
+          <button id="openUserFiles" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open</button>
+          <button id="goBack" style="margin-top: 10px; padding: 10px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Go Back</button>
+        `;
+
+        // Add event listeners for new buttons
+        // document
+        //   .getElementById("openUserFiles")
+        //   .addEventListener("click", () => {
+        //     alert("File opened!");
+        //   });
+
+        document
+          .getElementById("openUserFiles")
+          .addEventListener("click", openUserFiles);
+
+        document
+          .getElementById("goBack")
+          .addEventListener("click", createPopup);
+      });
 
     // Add click event for the button
     document.getElementById("popupButton").addEventListener("click", () => {
@@ -204,6 +242,21 @@ let isJobSiteContent = false;
 
   observer.observe(document.body, { childList: true, subtree: true });
 
+  function openUserFiles() {
+    const fileId = document.getElementById("exitingFileName").value;
+
+    chrome.runtime.sendMessage({
+      action: "OpenUserFiles",
+      file_id: fileId,
+    });
+
+    // console.log("Hello Wrold");
+
+    const newTabUrl = `http://127.0.0.1:5000/fetch-title?file_id=${fileId}`;
+    console.log(newTabUrl);
+    window.open(newTabUrl, "_blank");
+  }
+
   function addExistingFile() {
     const jobTitle = document.getElementById("fileModalJobTitle").value;
     const orgName = document.getElementById("fileModalOrgName").value;
@@ -215,9 +268,10 @@ let isJobSiteContent = false;
       org_name: orgName,
       location: location,
       file_id: fileId,
+      isNew: false,
     };
 
-    console.log("The existing file job data is ", job_data);
+    createJobTrackerFile(job_data);
   }
 
   function saveJobDetails() {
@@ -232,6 +286,7 @@ let isJobSiteContent = false;
       org_name: orgName,
       location: location,
       file_name: fileName,
+      isNew: true,
     };
 
     createJobTrackerFile(job_data);
