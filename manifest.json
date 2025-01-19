@@ -3,13 +3,7 @@
   "name": "Job Application Tracker",
   "version": "1.0",
   "description": "Reads and prints the content of the current webpage.",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "downloads",
-    "storage",
-    "http://127.0.0.1:5000/*"
-  ],
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"

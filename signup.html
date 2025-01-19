@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 10px;
+      color: #d9534f;
+    }
+  </style>
+</head>
+<body>
+  <h2>Sign Up</h2>
+  <input type="email" id="signup-email" placeholder="Email" required />
+  <input type="password" id="signup-password" placeholder="Password" required />
+  <button id="signup-button">Submit</button>
+  <div id="signup-message" class="message"></div>
+
+  <script>
+    const supabaseUrl = 'https://YOUR_SUPABASE_URL';
+    const supabaseAnonKey = 'YOUR_ANON_KEY';
+    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    document.getElementById('signup-button').addEventListener('click', async () => {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const message = document.getElementById('signup-message');
+
+      message.textContent = ''; // Clear previous messages
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+
+      if (error) {
+        message.textContent = 'Error signing up: ' + error.message;
+        return;
+      }
+
+      message.style.color = 'green';
+      message.textContent = 'Sign Up successful! Check your email for confirmation.';
+    });
+  </script>
+</body>
+</html>
