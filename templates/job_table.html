@@ -85,12 +85,12 @@
                 src="{{ url_for('static', filename='images/csv.png') }}"
                 alt=""
             /></label>
-            <label for="export-file" id="toEXCEL"
+            <!-- <label for="export-file" id="toEXCEL"
               >EXCEL
               <img
                 src="{{ url_for('static', filename='images/excel.png') }}"
                 alt=""
-            /></label>
+            /></label> -->
           </div>
         </div>
       </section>
@@ -112,7 +112,7 @@
               <td>{{ job.job_info.location}}</td>
               <td>{{ job.job_info.url }}</td>
             </tr>
-            {% endfor %}/
+            {% endfor %}
           </tbody>
         </table>
       </section>
