@@ -28,21 +28,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       console.error("Error fetching job details:", response.statusText);
       return;
     }
-
-    // fetch("http://127.0.0.1:5000/fetch-title", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ fileId: file_id }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log("Title saved successfully:", data);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error sending title to Flask backend:", error);
-    //   });
   } else if (request.action === "sendToMl") {
     const page_content = request.pageContent;
 
@@ -76,5 +61,63 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       .catch((error) => {
         console.error("Error sending title to Flask backend:", error);
       });
+  } else if (request.action === "getUserInfo") {
+    // console.log("It reache here");
+    // chrome.identity.getProfileUserInfo((userInfo) => {
+    //   console.log("The user info is ", userInfo);
+    //   if (userInfo.id) {
+    //     console.log("User ID:", userInfo.id);
+    //     console.log("Email:", userInfo.email);
+    //     sendResponse({
+    //       success: true,
+    //       userId: userInfo.id,
+    //       email: userInfo.email,
+    //     });
+    //   } else {
+    //     console.error("Failed to get user information.");
+    //     sendResponse({
+    //       success: false,
+    //       error: "Failed to retrieve user info.",
+    //     });
+    //   }
+    // });
+    // return true;
+
+    chrome.identity.getAuthToken({ interactive: true }, function (token) {
+      // if (chrome.runtime.lastError) {
+      //   console.log("Error getting auth token:", chrome.runtime.lastError);
+      //   sendResponse({ success: false, error: chrome.runtime.lastError });
+      //   return;
+      // }
+
+      // Fetch user info from Google using the OAuth token
+      fetch("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("User info:", data);
+          const userId = data.id;
+          const email = data.email;
+          console.log("User ID:", userId);
+          console.log("Email:", email);
+
+          // Send the user info to the content script
+          sendResponse({
+            success: true,
+            userId: userId,
+            email: email,
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching user info:", error);
+          sendResponse({ success: false, error: error.message });
+        });
+    });
+
+    return true;
   }
 });

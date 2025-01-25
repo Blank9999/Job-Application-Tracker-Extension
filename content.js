@@ -362,6 +362,50 @@ let isJobSiteContent = false;
     });
   }
 
+  // async function requestUserInfo() {
+  //   // chrome.runtime.sendMessage({
+  //   //   action: "sendToMl",
+  //   //   pageContent: page_content,
+  //   // });
+
+  //   return new Promise((resolve, reject) => {
+  //     chrome.runtime.sendMessage({ action: "getUserInfo" }, (response) => {
+  //       console.log("Hello");
+  //       console.log("The response is ", response);
+  //       if (response && response.success) {
+  //         console.log("User ID retrieved from background.js:", response.userId);
+  //         console.log("User Email:", response.email);
+  //         resolve({ userId: response.userId, email: response.email });
+  //       } else {
+  //         console.error(
+  //           "Error retrieving user info:",
+  //           response?.error || "Unknown error."
+  //         );
+  //         reject(new Error(response?.error || "Failed to retrieve user info."));
+  //       }
+  //     });
+  //   });
+  // }
+
+  async function getUserInfo() {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: "getUserInfo" }, (response) => {
+        console.log("The reponse is ", response);
+        if (response && response.success) {
+          console.log("User ID retrieved from background.js:", response.userId);
+          console.log("User Email:", response.email);
+          resolve({ userId: response.userId, email: response.email });
+        } else {
+          console.error(
+            "Error retrieving user info:",
+            response?.error || "Unknown error."
+          );
+          reject(new Error(response?.error || "Failed to retrieve user info."));
+        }
+      });
+    });
+  }
+
   // async function reiceveFromModel() {
   //   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   //     if (message.action === "updateModal") {
@@ -424,6 +468,27 @@ let isJobSiteContent = false;
   const isJobSiteURL =
     patterns.some((pattern) => pattern.test(window.location.href)) &&
     !isGoogleURL(window.location.href);
+
+  // requestUserInfo()
+  //   .then(({ userId, email }) => {
+  //     console.log("User ID:", userId);
+  //     console.log("Email:", email);
+  //     // Use the userId and email here
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error:", error.message);
+  //   });
+
+  (async () => {
+    try {
+      const { userId, email } = await getUserInfo();
+      console.log("User ID:", userId);
+      console.log("Email:", email);
+      // Use the userId and email here
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  })();
 
   createPopup();
 })();
