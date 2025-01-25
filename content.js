@@ -98,7 +98,10 @@ let isJobSiteContent = false;
     });
   }
 
-  function createJobForm() {
+  async function createJobForm() {
+    await sendToMlModel();
+    const result = await receiveFromModel();
+
     const modal = document.createElement("div");
     modal.id = "jobFormModal";
     modal.style.position = "fixed";
@@ -140,13 +143,19 @@ let isJobSiteContent = false;
       .addEventListener("click", () => {
         modal.style.display = "none";
       });
+
+    document.getElementById("jobTitle").value = result.jobTitle;
+    document.getElementById("orgName").value = result.companyName;
+    document.getElementById("jobLocation").value = result.location;
   }
 
   async function openJobForm() {
     await sendToMlModel();
     const response = await fetch("http://127.0.0.1:5000/file-name");
     const fileNames = await response.json();
-    await reiceveFromModel();
+    const result = await receiveFromModel();
+
+    console.log("The result is ", result);
     // const mlResponse = await fetch("http://127.0.0.1:5000/analyze-text");
     // const mlData = await mlResponse.json();
 
@@ -201,6 +210,10 @@ let isJobSiteContent = false;
     document
       .getElementById("fileModalSaveJobDetails")
       .addEventListener("click", addExistingFile);
+
+    document.getElementById("fileModalJobTitle").value = result.jobTitle;
+    document.getElementById("fileModalOrgName").value = result.companyName;
+    document.getElementById("fileModalJobLocation").value = result.location;
   }
 
   function showPopup() {
@@ -321,29 +334,57 @@ let isJobSiteContent = false;
     });
   }
 
-  async function reiceveFromModel() {
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (message.action === "updateModal") {
-        const companyName = message.companyName[0];
-        const location = message.location[0];
-        let jobTitle = message.jobTitle[0];
+  async function receiveFromModel() {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === "updateModal") {
+          const companyName = message.companyName;
+          const location = message.location;
+          let jobTitle = message.jobTitle;
 
-        if (jobTitle.toLowerCase() === "job") {
-          jobTitle = "";
+          // Handle jobTitle condition
+          if (jobTitle.toLowerCase() === "job") {
+            jobTitle = "";
+          }
+
+          // Log the extracted data (for debugging)
+          console.log("Company Name:", companyName);
+          console.log("Location:", location);
+          console.log("Job Title:", jobTitle);
+
+          // Send the response and resolve the promise with the data
+          sendResponse({ location, companyName, jobTitle });
+
+          // Resolve the promise with the same data
+          resolve({ location, companyName, jobTitle });
         }
-
-        // Log the data (for debugging)
-        console.log("Company Name:", companyName);
-        console.log("Location:", location);
-        console.log("Job Title:", jobTitle);
-
-        // Update the modal with the extracted data
-        document.getElementById("fileModalOrgName").value = companyName || "";
-        document.getElementById("fileModalJobLocation").value = location || "";
-        document.getElementById("fileModalJobTitle").value = jobTitle || "";
-      }
+      });
     });
   }
+
+  // async function reiceveFromModel() {
+  //   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  //     if (message.action === "updateModal") {
+  //       const companyName = message.companyName[0];
+  //       const location = message.location[0];
+  //       let jobTitle = message.jobTitle[0];
+
+  //       if (jobTitle.toLowerCase() === "job") {
+  //         jobTitle = "";
+  //       }
+
+  //       // Log the data (for debugging)
+  //       console.log("Company Name:", companyName);
+  //       console.log("Location:", location);
+  //       console.log("Job Title:", jobTitle);
+
+  //       // Update the modal with the extracted data
+  //       document.getElementById("fileModalOrgName").value = companyName || "";
+  //       document.getElementById("fileModalJobLocation").value = location || "";
+  //       document.getElementById("fileModalJobTitle").value = jobTitle || "";
+  //     }
+  //   });
+  // }
 
   function isGoogleURL() {
     const googlePattern = /google\.com/i;
