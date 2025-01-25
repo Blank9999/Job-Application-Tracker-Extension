@@ -5,17 +5,6 @@ let isJobSiteContent = false;
 (function () {
   // Patterns to match job-related URLs
 
-  const data = [
-    ["SnowFlake", "Software Engineer Intern", "Toronto"],
-    ["RBC", "Software Engineer Intern", "Toronto"],
-    ["Scotiabank", "Data Analysis Intern", "Ottawa"],
-    ["TD", "Software Engineer Intern", "Kitchner"],
-  ];
-
-  // function convertToCSV(data) {
-  //   return data.map((row) => row.join(",")).join("\n");
-  // }
-
   function createPopup() {
     const popup = document.createElement("div");
     popup.id = "jobPopup";
@@ -30,35 +19,79 @@ let isJobSiteContent = false;
     popup.style.display = "none"; // Initially hidden
     popup.style.zIndex = "9999";
 
-    popup.innerHTML = `
-      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application Detected!</div>
-      <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this </p>
-      <button id="createNewFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Create New File</button>
-      <button id="openFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
-      <label for="openExistingFileInput" style="display: none;"> <!-- Hidden file input inside a label -->
-        <input id="openExistingFileInput" type="file" accept=".csv" style="display: none;">
-      </label>
-    `;
-    // <button id="openExistingFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open Existing File</button>
+    const closeButton = document.createElement("div");
+    closeButton.innerHTML = "&#10006;"; // Unicode for "X"
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "10px";
+    closeButton.style.fontSize = "20px";
+    closeButton.style.cursor = "pointer";
+    closeButton.style.color = "#333"; // Optional: Change color of X
+    closeButton.style.fontWeight = "bold";
+    popup.appendChild(closeButton);
 
+    closeButton.addEventListener("click", () => {
+        popup.style.display = "none";
+    });
+
+    const content = document.createElement("div");
+    content.innerHTML = `
+    <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application Detected!</div>
+    <p style="margin: 0;">We detected that this page is related to a job application. Do you want us to add this?</p>
+    <button id="createNewFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Add to a New File</button>
+    <button id="openFileBtn" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Add to an Existing File</button>
+    <button id="openExistingFile" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open your Files</button>
+  `;
+
+    popup.appendChild(content);
     document.body.appendChild(popup);
 
     document
-      .getElementById("createNewFileBtn")
-      .addEventListener("click", () => sendToFlask(lastContent));
-    document.getElementById("openFileBtn").addEventListener("click", () => {
-      document.getElementById("openExistingFileInput").click();
-    });
+        .getElementById("createNewFileBtn")
+        .addEventListener("click", createJobForm);
 
     document
-      .getElementById("openExistingFileInput")
-      .addEventListener("change", handleFileSelect);
+        .getElementById("openFileBtn")
+        .addEventListener("click", openJobForm);
 
-    // Add click event for the button
-    document.getElementById("popupButton").addEventListener("click", () => {
-      alert("Popup action triggered!");
-    });
-  }
+    document
+        .getElementById("openExistingFile")
+        .addEventListener("click", async () => {
+            const response = await fetch("http://127.0.0.1:5000/file-name");
+            const fileNames = await response.json();
+
+            popup.innerHTML = `
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application</div>
+          <p style="margin: 0;">These are your files. Select one to view all your applications:</p>
+          <select id="exitingFileName" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+            ${fileNames
+                .map(
+                    (file) =>
+                        `<option value="${file.id}">${file.file_name}</option>`
+                )
+                .join("")}
+          </select>
+          <button id="openUserFiles" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open</button>
+          <button id="goBack" style="margin-top: 10px; padding: 10px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Go Back</button>
+        `;
+
+            document
+                .getElementById("openUserFiles")
+                .addEventListener("click", openUserFiles);
+
+            document
+                .getElementById("goBack")
+                .addEventListener("click", () => {
+                    popup.remove(); // Remove the current popup
+                    createPopup(); // Recreate the original popup
+                    document.getElementById("jobPopup").style.display = "block"; // Show the recreated popup
+                });
+        });
+
+    // Display the popup
+    popup.style.display = "block";
+}
+
 
   async function createJobForm() {
     await sendToMlModel();
@@ -180,11 +213,6 @@ let isJobSiteContent = false;
 
   function showPopup() {
     const popup = document.getElementById("jobPopup");
-
-    // document
-    //   .getElementById("createNewFileBtn")
-    //   .addEventListener("click", () => createJobTrackerFile(currentContent));
-
     if (popup) {
       popup.style.display = "block";
     }
@@ -228,71 +256,55 @@ let isJobSiteContent = false;
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
-  
-  async function sendToFlask(content) {
-    try {
-      const response = await fetch("http://127.0.0.1:5000/process-content", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content }), // Send the page content as JSON
-      });
 
-      if (!response.ok) {
-        throw new Error(`Flask server responded with status ${response.status}`);
-      }
+  function openUserFiles() {
+    const fileId = document.getElementById("exitingFileName").value;
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to send content to Flask server:", error);
-      throw error;
-    }
+    chrome.runtime.sendMessage({
+      action: "OpenUserFiles",
+      file_id: fileId,
+    });
+
+    // console.log("Hello Wrold");
+
+    const newTabUrl = `http://127.0.0.1:5000/fetch-title?file_id=${fileId}`;
+    console.log(newTabUrl);
+    window.open(newTabUrl, "_blank");
   }
 
-  function createJobTrackerFile() {
-    const pageTitle = document.title;
+  function addExistingFile() {
+    const jobTitle = document.getElementById("fileModalJobTitle").value;
+    const orgName = document.getElementById("fileModalOrgName").value;
+    const location = document.getElementById("fileModalJobLocation").value;
+    const fileId = document.getElementById("fileNameOptions").value;
 
-    chrome.runtime.sendMessage({ action: "sendTitle", title: pageTitle });
-  }
-
-  function createCSVAndDownload() {
-    const csvContent = data.map((row) => row.join(",")).join("\n");
-    chrome.runtime.sendMessage(
-      {
-        type: "downloadCSV",
-        csvContent: csvContent,
-        filename: "job_data.csv", // Optional, specify the filename
-      },
-      (response) => {
-        if (response && response.success) {
-          console.log("CSV file downloaded successfully!");
-        } else {
-          console.error("Failed to download the CSV file.");
-        }
-      }
-    );
-  }
-
-  function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) {
-      alert("No file selected!");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      const content = e.target.result;
-      console.log("File content:", content);
-      const updatedContent = appendDataToCSV(content);
-      console.log("The updated content is ", updatedContent);
-
-      await saveUpdatedFile(file, updatedContent);
-      saveUpdatedFileFallback(updatedContent);
+    const job_data = {
+      job_title: jobTitle,
+      org_name: orgName,
+      location: location,
+      file_id: fileId,
+      isNew: false,
     };
-    reader.readAsText(file);
+
+    createJobTrackerFile(job_data);
+  }
+
+  function saveJobDetails() {
+    const jobTitle = document.getElementById("jobTitle").value;
+    const orgName = document.getElementById("orgName").value;
+    const location = document.getElementById("jobLocation").value;
+    const fileName = document.getElementById("documentNameInput").value;
+    // const fileName =
+
+    const job_data = {
+      job_title: jobTitle,
+      org_name: orgName,
+      location: location,
+      file_name: fileName,
+      isNew: true,
+    };
+
+    createJobTrackerFile(job_data);
   }
 
   function createJobTrackerFile(job_data) {
@@ -388,7 +400,6 @@ let isJobSiteContent = false;
     const jobKeywords = await fetchKeywords();
     const lowerCaseContent = currentContent.toLowerCase();
 
-    // console.log("This is the content lowerCaseContent ", lowerCaseContent);
     // Array to store all matching keywords, including duplicates
     const foundKeywords = [];
 
