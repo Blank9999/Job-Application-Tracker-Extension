@@ -5,6 +5,10 @@ let isJobSiteContent = false;
 (function () {
   // Patterns to match job-related URLs
 
+  function fetchUserEmail() {
+    chrome.runtime.sendMessage({ action: "fetchGmail" })
+  }
+
   function createPopup() {
     const popup = document.createElement("div");
     popup.id = "jobPopup";
@@ -48,7 +52,7 @@ let isJobSiteContent = false;
 
     document
         .getElementById("createNewFileBtn")
-        .addEventListener("click", createJobForm);
+        .addEventListener("click",createJobForm);
 
     document
         .getElementById("openFileBtn")

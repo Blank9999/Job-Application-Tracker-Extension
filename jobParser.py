@@ -30,11 +30,17 @@ def save_title():
     page_title = data.get('title')
     page_url = data.get('url')
     job_data = data.get('data')
-
+    email = data.get('email')
+    
     if not page_title:
         return jsonify({"status": "error", "message": "No title provided"}), 400
 
-    entities = {"ORG": job_data['org_name'], "GPE": job_data['location'], "TITLE": job_data['job_title'],"URL": page_url}
+    if not email:
+        return jsonify({"status": "error", "message": "No email provided"}), 400
+    
+    print(f"Email authenticated: {email}")
+
+    entities = {"ORG": job_data['org_name'], "GPE": job_data['location'], "TITLE": job_data['job_title'],"URL": page_url, "EMAIL": email}
     isNew = job_data['isNew']
 
     if isNew:
@@ -134,7 +140,8 @@ def create_job_info_row(data):
         "organization": data['ORG'],
         "job_title": data['TITLE'],
         "location": data['GPE'],
-        "url": data['URL']
+        "url": data['URL'],
+        "email": data['EMAIL']
     }).execute()
 
     if response and response.data:
