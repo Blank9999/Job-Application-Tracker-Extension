@@ -2,15 +2,19 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
-import spacy
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from collections import Counter
+from groq import Groq
+from dotenv import load_dotenv
 
-nlp = spacy.load("en_core_web_trf")
 load_dotenv()
 url = os.getenv("API_URL")
 key = os.getenv("API_SERVICE_ROLE")
+api_key = os.getenv("GROQ_API")
+client = Groq(
+    api_key=api_key,
+)
 supabase: Client = create_client(url, key)
 
 app = Flask(__name__)
@@ -41,23 +45,6 @@ def save_title():
         file_id = job_data['file_id']
         add_file_jobs(entities, file_id)
 
-    # doc = nlp(page_title)
-
-    # print([(w.text, w.pos_) for w in doc])
-    # for ent in doc.ents:
-    #     if ent.label_ == "ORG":
-    #         entities["ORG"].append(ent.text)  # Company name
-    #     elif ent.label_ == "GPE":
-    #         entities["GPE"].append(ent.text)  # Location
-    #     elif ent.label_ == "PERSON":  # Job title approximation (customize if needed)
-    #         entities["TITLE"].append(ent.text)
-
-    # Attempt pattern matching for job title
-    # job_title = None
-    # for token in doc:
-    #     if token.pos_ == "NOUN" and "job" in token.text.lower():
-    #         job_title = token.text
-    #         break
     return jsonify({"status": "success", "message": "Title saved successfully!"})
 
 @app.route('/analyze-text',methods=['POST'])
@@ -71,88 +58,49 @@ def analyze_text():
     if not page_content:
         return jsonify({"status": "error", "message": "No title provided"}), 400
     
-    print(f"Received page title:{page_content}")
+    query = "\nThis is a job application. Pick out the location of the company, the name of the company and the position of the job. give the output in 3 different lines in the form location: location of the company, company: name of the company and position: position of the company "
 
-    doc = nlp(page_content)
-    # entities = {"ORG": [], "GPE": [], "TITLE": []}
+    page_content += f"\n{query}"
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": page_content
+            }
+        ],
+        model="llama-3.3-70b-versatile",
+    )
+
+    response = chat_completion.choices[0].message.content
+    entries = {}
+
+    for line in response.strip().split('\n'):
+        lowerCaseLine = line.lower()
+        print(lowerCaseLine)
+        if  "location" in lowerCaseLine:
+            # print("reached here ")
+            entries["gpe"] = line.split(":")[1].strip()
+        elif "company" in lowerCaseLine:
+            entries["org"] = lowerCaseLine.split(":")[1].strip()
+        elif "position" in lowerCaseLine:
+            entries["title"] = line.split(":")[1].strip()
     
-    # print([(w.text, w.pos_) for w in doc])
-
-    # for ent in doc.ents:
-    #     if ent.label_ == "ORG":
-    #         entities["ORG"].append(ent.text)  # Company name
-    #     elif ent.label_ == "GPE":
-    #         entities["GPE"].append(ent.text)  # Location
-    #     elif ent.label_ == "PERSON":  # Job title approximation (customize if needed)
-    #         entities["TITLE"].append(ent.text)
-
-    # # Attempt pattern matching for job title
-    # job_title = None
-    # for token in doc:
-    #     if token.pos_ == "NOUN" and "job" in token.text.lower():
-    #         job_title = token.text
-    #         break
-
-    # extracted_data = {
-    #     "company_name": entities["ORG"][0] if entities["ORG"] else None,
-    #     "location": entities["GPE"][0] if entities["GPE"] else None,
-    #     "job_title": job_title or (entities["TITLE"][0] if entities["TITLE"] else None)
-    # }
-
-    # print(f"Extracted data: {extracted_data}")
-    # Initialize label counts
-    label_counts = {"ORG": Counter(), "GPE": Counter()}
-    job_title_counter = Counter()
-
-    # Process entities
-    for ent in doc.ents:
-        if ent.label_ in label_counts:
-            label_counts[ent.label_][ent.text] += 1  # Increment count for the entity text
-
-    # Attempt pattern matching for job title
-    for token in doc:
-        if token.pos_ == "NOUN" and "job" in token.text.lower():
-            job_title_counter[token.text] += 1
-
-    # Find the most common entities and job title
-    most_common_words = {
-        label: counts.most_common(1)[0] if counts else None
-        for label, counts in label_counts.items()
-    }
-    most_common_job_title = job_title_counter.most_common(1)[0] if job_title_counter else None
-
-    # Output results
-    print("Entity Counts by Label:")
-    for label, counts in label_counts.items():
-        print(f"{label}: {dict(counts)}")
-
-    print("\nMost Common Words by Label:")
-    for label, word_data in most_common_words.items():
-        if word_data:
-            print(f"{label}: '{word_data[0]}' with {word_data[1]} appearances")
-        else:
-            print(f"{label}: None")
-
-    print("\nMost Common Job Title:")
-    if most_common_job_title:
-        print(f"Job Title: '{most_common_job_title[0]}' with {most_common_job_title[1]} appearances")
-    else:
-        print("Job Title: None")
-
-    # Construct response
+    print(entries)
+    # most_common_words = {}
+    # most_common_job_title="Software Dev"
+    # # Construct response
     response_data = {
         "status": "success",
         "message": "Title processed successfully!",
         "most_common": {
-            "ORG": most_common_words["ORG"],
-            "GPE": most_common_words["GPE"],
-            "job_title": most_common_job_title
+            "ORG": entries["org"],
+            "GPE": entries["gpe"],
+            "job_title": entries["title"]
         }
     }
 
     print(f"The response data is  {response_data}")
-
-    # return jsonify({"status": "success", "message": "Title saved successfully!"}) 
     return jsonify(response_data)
 
 
