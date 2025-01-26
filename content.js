@@ -150,6 +150,7 @@ let isJobSiteContent = false;
   }
 
   async function openJobForm() {
+    getUserInfo();
     await sendToMlModel();
     const response = await fetch("http://127.0.0.1:5000/file-name");
     const fileNames = await response.json();
@@ -291,6 +292,8 @@ let isJobSiteContent = false;
       isNew: false,
     };
 
+    // getUserInfo();
+
     createJobTrackerFile(job_data);
   }
 
@@ -388,21 +391,8 @@ let isJobSiteContent = false;
   // }
 
   async function getUserInfo() {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ action: "getUserInfo" }, (response) => {
-        console.log("The reponse is ", response);
-        if (response && response.success) {
-          console.log("User ID retrieved from background.js:", response.userId);
-          console.log("User Email:", response.email);
-          resolve({ userId: response.userId, email: response.email });
-        } else {
-          console.error(
-            "Error retrieving user info:",
-            response?.error || "Unknown error."
-          );
-          reject(new Error(response?.error || "Failed to retrieve user info."));
-        }
-      });
+    chrome.runtime.sendMessage({
+      action: "getUserInfo",
     });
   }
 
@@ -479,16 +469,15 @@ let isJobSiteContent = false;
   //     console.error("Error:", error.message);
   //   });
 
-  (async () => {
-    try {
-      const { userId, email } = await getUserInfo();
-      console.log("User ID:", userId);
-      console.log("Email:", email);
-      // Use the userId and email here
-    } catch (error) {
-      console.error("Error:", error.message);
-    }
-  })();
-
+  // (async () => {
+  //   try {
+  //     const { userId, email } = await getUserInfo();
+  //     console.log("User ID:", userId);
+  //     console.log("Email:", email);
+  //     // Use the userId and email here
+  //   } catch (error) {
+  //     console.error("Error:", error.message);
+  //   }
+  // })();
   createPopup();
 })();
