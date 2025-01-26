@@ -58,7 +58,10 @@ let isJobSiteContent = false;
     document
       .getElementById("openExistingFile")
       .addEventListener("click", async () => {
-        const response = await fetch("http://127.0.0.1:5000/file-name");
+        const email = await getUserInfo();
+        const response = await fetch(
+          `http://127.0.0.1:5000/file-name?email=${email}`
+        );
         const fileNames = await response.json();
 
         popup.innerHTML = `
@@ -150,9 +153,12 @@ let isJobSiteContent = false;
   }
 
   async function openJobForm() {
-    getUserInfo();
     await sendToMlModel();
-    const response = await fetch("http://127.0.0.1:5000/file-name");
+    const email = await getUserInfo();
+    const response = await fetch(
+      `http://127.0.0.1:5000/file-name?email=${email}`
+    );
+    // const response = await fetch("http://127.0.0.1:5000/file-name");
     const fileNames = await response.json();
     const result = await receiveFromModel();
 
@@ -291,9 +297,6 @@ let isJobSiteContent = false;
       file_id: fileId,
       isNew: false,
     };
-
-    // getUserInfo();
-
     createJobTrackerFile(job_data);
   }
 
@@ -315,17 +318,19 @@ let isJobSiteContent = false;
     createJobTrackerFile(job_data);
   }
 
-  function createJobTrackerFile(job_data) {
+  async function createJobTrackerFile(job_data) {
     // const pageTitle = document.title;
     console.log("Hello");
     const pageContent = document.body.innerText;
     const pageUrl = window.location.href;
+    const email = await getUserInfo();
     // console.log("The content is ", pageContent);
     chrome.runtime.sendMessage({
       action: "addToNewFile",
       title: pageContent,
       url: pageUrl,
       data: job_data,
+      email: email,
     });
   }
 
@@ -365,60 +370,25 @@ let isJobSiteContent = false;
     });
   }
 
-  // async function requestUserInfo() {
-  //   // chrome.runtime.sendMessage({
-  //   //   action: "sendToMl",
-  //   //   pageContent: page_content,
-  //   // });
-
-  //   return new Promise((resolve, reject) => {
-  //     chrome.runtime.sendMessage({ action: "getUserInfo" }, (response) => {
-  //       console.log("Hello");
-  //       console.log("The response is ", response);
-  //       if (response && response.success) {
-  //         console.log("User ID retrieved from background.js:", response.userId);
-  //         console.log("User Email:", response.email);
-  //         resolve({ userId: response.userId, email: response.email });
-  //       } else {
-  //         console.error(
-  //           "Error retrieving user info:",
-  //           response?.error || "Unknown error."
-  //         );
-  //         reject(new Error(response?.error || "Failed to retrieve user info."));
-  //       }
-  //     });
-  //   });
-  // }
-
   async function getUserInfo() {
-    chrome.runtime.sendMessage({
-      action: "getUserInfo",
+    // Send the request to the background script
+    chrome.runtime.sendMessage({ action: "getUserInfo" });
+
+    return new Promise((resolve, reject) => {
+      // Listen for the response from the background script
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message.action === "userInfoResponse") {
+          if (message.success) {
+            console.log("User email received:", message.email);
+            resolve(message.email); // Resolve the promise with the email
+          } else {
+            console.error("Failed to fetch user info:", message.error);
+            reject(message.error); // Reject the promise with the error
+          }
+        }
+      });
     });
   }
-
-  // async function reiceveFromModel() {
-  //   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  //     if (message.action === "updateModal") {
-  //       const companyName = message.companyName[0];
-  //       const location = message.location[0];
-  //       let jobTitle = message.jobTitle[0];
-
-  //       if (jobTitle.toLowerCase() === "job") {
-  //         jobTitle = "";
-  //       }
-
-  //       // Log the data (for debugging)
-  //       console.log("Company Name:", companyName);
-  //       console.log("Location:", location);
-  //       console.log("Job Title:", jobTitle);
-
-  //       // Update the modal with the extracted data
-  //       document.getElementById("fileModalOrgName").value = companyName || "";
-  //       document.getElementById("fileModalJobLocation").value = location || "";
-  //       document.getElementById("fileModalJobTitle").value = jobTitle || "";
-  //     }
-  //   });
-  // }
 
   function isGoogleURL() {
     const googlePattern = /google\.com/i;
@@ -459,25 +429,5 @@ let isJobSiteContent = false;
     patterns.some((pattern) => pattern.test(window.location.href)) &&
     !isGoogleURL(window.location.href);
 
-  // requestUserInfo()
-  //   .then(({ userId, email }) => {
-  //     console.log("User ID:", userId);
-  //     console.log("Email:", email);
-  //     // Use the userId and email here
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error:", error.message);
-  //   });
-
-  // (async () => {
-  //   try {
-  //     const { userId, email } = await getUserInfo();
-  //     console.log("User ID:", userId);
-  //     console.log("Email:", email);
-  //     // Use the userId and email here
-  //   } catch (error) {
-  //     console.error("Error:", error.message);
-  //   }
-  // })();
   createPopup();
 })();

@@ -3,13 +3,19 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     const pageTitle = request.title;
     const pageUrl = request.url;
     const jobData = request.data;
+    const mail = request.email;
 
     fetch("http://127.0.0.1:5000/save-title", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: pageTitle, url: pageUrl, data: jobData }),
+      body: JSON.stringify({
+        title: pageTitle,
+        url: pageUrl,
+        data: jobData,
+        email: mail,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -68,15 +74,38 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
           "Error fetching email:",
           chrome.runtime.lastError.message
         );
-        sendResponse({
-          success: false,
-          error: chrome.runtime.lastError.message,
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "userInfoResponse",
+            success: false,
+            error: chrome.runtime.lastError.message,
+          });
         });
         return;
+
+        // sendResponse({
+        //   success: false,
+        //   error: chrome.runtime.lastError.message,
+        // });
+        // return;
       }
 
       const email = userInfo.email || "unknown@example.com"; // Fallback if email is unavailable
       console.log("Fetched email for addToNewFile:", email);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "userInfoResponse",
+          success: true,
+          email: email,
+        });
+      });
+
+      // sendResponse({
+      //   success: true,
+      //   email: email,
+      // });
     });
 
     // Return true to indicate the response will be sent asynchronously

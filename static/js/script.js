@@ -1,14 +1,3 @@
-/**
-Responsive HTML Table With Pure CSS - Web Design/UI Design
-
-Code written by:
-👨🏻‍⚕️ @Coding Design (Jeet Saru)
-
-> You can do whatever you want with the code. However if you love my content, you can **SUBSCRIBED** my YouTube Channel.
-
-🌎link: www.youtube.com/codingdesign 
-*/
-
 const search = document.querySelector(".input-group input"),
   table_rows = document.querySelectorAll("tbody tr"),
   table_headings = document.querySelectorAll("thead th");
@@ -149,11 +138,6 @@ const csv_btn = document.querySelector("#toCSV");
 
 const toCSV = function (table) {
   // Code For SIMPLE TABLE
-  // const t_rows = table.querySelectorAll('tr');
-  // return [...t_rows].map(row => {
-  //     const cells = row.querySelectorAll('th, td');
-  //     return [...cells].map(cell => cell.textContent.trim()).join(',');
-  // }).join('\n');
 
   const t_heads = table.querySelectorAll("th"),
     tbody_rows = table.querySelectorAll("tbody tr");
@@ -167,12 +151,10 @@ const toCSV = function (table) {
   const table_data = [...tbody_rows]
     .map((row) => {
       const cells = row.querySelectorAll("td"),
-        // img = decodeURIComponent(row.querySelector('img').src),
         data_without_img = [...cells]
           .map((cell) => cell.textContent.replace(/,/g, ".").trim())
           .join(",");
 
-      // return data_without_img + ',' + img;
       return data_without_img;
     })
     .join("\n");
@@ -191,37 +173,8 @@ const excel_btn = document.querySelector("#toEXCEL");
 
 const toExcel = function (table) {
   // Code For SIMPLE TABLE
-  // const t_rows = table.querySelectorAll('tr');
-  // return [...t_rows].map(row => {
-  //     const cells = row.querySelectorAll('th, td');
-  //     return [...cells].map(cell => cell.textContent.trim()).join('\t');
-  // }).join('\n');
-
   const t_heads = table.querySelectorAll("th"),
     tbody_rows = table.querySelectorAll("tbody tr");
-
-  //   const headings =
-  //     [...t_heads]
-  //       .map((head) => {
-  //         let actual_head = head.textContent.trim().split(" ");
-  //         return actual_head
-  //           .splice(0, actual_head.length - 1)
-  //           .join(" ")
-  //           .toLowerCase();
-  //       })
-  //       .join("\t") +
-  //     "\t" +
-  //     "image name";
-
-  //   const headings = [...t_heads]
-  //     .map((head) => {
-  //       let actual_head = head.textContent.trim().split(" ");
-  //       return actual_head
-  //         .splice(0, actual_head.length - 1)
-  //         .join(" ")
-  //         .toLowerCase();
-  //     })
-  //     .join("\t");
 
   const headings = [...t_heads]
     .map((head) => head.textContent.trim().toLowerCase()) // Keep full header text
@@ -230,12 +183,9 @@ const toExcel = function (table) {
   const table_data = [...tbody_rows]
     .map((row) => {
       const cells = row.querySelectorAll("td"),
-        // img = decodeURIComponent(row.querySelector("img").src),
         data_without_img = [...cells]
           .map((cell) => cell.textContent.trim())
           .join("\t");
-
-      //   return data_without_img + "\t" + img;
       return data_without_img;
     })
     .join("\n");

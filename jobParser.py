@@ -30,16 +30,18 @@ def save_title():
     page_title = data.get('title')
     page_url = data.get('url')
     job_data = data.get('data')
+    email = data.get('email')
 
     if not page_title:
         return jsonify({"status": "error", "message": "No title provided"}), 400
 
     entities = {"ORG": job_data['org_name'], "GPE": job_data['location'], "TITLE": job_data['job_title'],"URL": page_url}
     isNew = job_data['isNew']
+    # print(email)
 
     if isNew:
         fileName = job_data['file_name']
-        file_id = create_new_file(fileName)
+        file_id = create_new_file(fileName,email)
         add_file_jobs(entities, file_id)
     else:
         file_id = job_data['file_id']
@@ -87,9 +89,6 @@ def analyze_text():
             entries["title"] = line.split(":")[1].strip()
     
     print(entries)
-    # most_common_words = {}
-    # most_common_job_title="Software Dev"
-    # # Construct response
     response_data = {
         "status": "success",
         "message": "Title processed successfully!",
@@ -113,9 +112,10 @@ def add_file_jobs(entities, file_id):
 
     print("Successfully added to the file_to_jobs")
 
-def create_new_file(file):
+def create_new_file(file,email):
     response = supabase.table('file_name').insert({
-        "file_name": file
+        "file_name": file,
+        "mail": email
     }).execute()
 
     if response and response.data:
@@ -149,7 +149,6 @@ def create_job_info_row(data):
 @app.route('/fetch-title', methods=['GET'])
 def fetch_create_job_info_row():
     file_id = request.args.get('file_id')
-    print(f"The file id is : {file_id}")
     if file_id is None:
         return "File ID is required", 400 
     response = supabase.from_('file_to_jobs').select('id, job_info(id,organization,job_title,location,url),file_name(id,file_name)').eq('file_id', file_id).execute()
@@ -159,7 +158,8 @@ def fetch_create_job_info_row():
 
 @app.route('/file-name', methods=['GET'])
 def fetch_file_name():
-    response = supabase.table("file_name").select("*").execute()
+    email = request.args.get('email')
+    response = supabase.table("file_name").select("*").eq('mail',email).execute()
     data = response.data
     return jsonify(data), 200
 
