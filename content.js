@@ -58,7 +58,10 @@ let isJobSiteContent = false;
     document
       .getElementById("openExistingFile")
       .addEventListener("click", async () => {
-        const response = await fetch("http://127.0.0.1:5000/file-name");
+        const email = await getUserInfo();
+        const response = await fetch(
+          `http://127.0.0.1:5000/file-name?email=${email}`
+        );
         const fileNames = await response.json();
 
         popup.innerHTML = `
@@ -151,7 +154,11 @@ let isJobSiteContent = false;
 
   async function openJobForm() {
     await sendToMlModel();
-    const response = await fetch("http://127.0.0.1:5000/file-name");
+    const email = await getUserInfo();
+    const response = await fetch(
+      `http://127.0.0.1:5000/file-name?email=${email}`
+    );
+    // const response = await fetch("http://127.0.0.1:5000/file-name");
     const fileNames = await response.json();
     const result = await receiveFromModel();
 
@@ -290,7 +297,6 @@ let isJobSiteContent = false;
       file_id: fileId,
       isNew: false,
     };
-
     createJobTrackerFile(job_data);
   }
 
@@ -312,17 +318,19 @@ let isJobSiteContent = false;
     createJobTrackerFile(job_data);
   }
 
-  function createJobTrackerFile(job_data) {
+  async function createJobTrackerFile(job_data) {
     // const pageTitle = document.title;
     console.log("Hello");
     const pageContent = document.body.innerText;
     const pageUrl = window.location.href;
+    const email = await getUserInfo();
     // console.log("The content is ", pageContent);
     chrome.runtime.sendMessage({
       action: "addToNewFile",
       title: pageContent,
       url: pageUrl,
       data: job_data,
+      email: email,
     });
   }
 
@@ -362,29 +370,25 @@ let isJobSiteContent = false;
     });
   }
 
-  // async function reiceveFromModel() {
-  //   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  //     if (message.action === "updateModal") {
-  //       const companyName = message.companyName[0];
-  //       const location = message.location[0];
-  //       let jobTitle = message.jobTitle[0];
+  async function getUserInfo() {
+    // Send the request to the background script
+    chrome.runtime.sendMessage({ action: "getUserInfo" });
 
-  //       if (jobTitle.toLowerCase() === "job") {
-  //         jobTitle = "";
-  //       }
-
-  //       // Log the data (for debugging)
-  //       console.log("Company Name:", companyName);
-  //       console.log("Location:", location);
-  //       console.log("Job Title:", jobTitle);
-
-  //       // Update the modal with the extracted data
-  //       document.getElementById("fileModalOrgName").value = companyName || "";
-  //       document.getElementById("fileModalJobLocation").value = location || "";
-  //       document.getElementById("fileModalJobTitle").value = jobTitle || "";
-  //     }
-  //   });
-  // }
+    return new Promise((resolve, reject) => {
+      // Listen for the response from the background script
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message.action === "userInfoResponse") {
+          if (message.success) {
+            console.log("User email received:", message.email);
+            resolve(message.email); // Resolve the promise with the email
+          } else {
+            console.error("Failed to fetch user info:", message.error);
+            reject(message.error); // Reject the promise with the error
+          }
+        }
+      });
+    });
+  }
 
   function isGoogleURL() {
     const googlePattern = /google\.com/i;
