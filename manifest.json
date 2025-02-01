@@ -4,6 +4,8 @@
   "version": "1.0",
   "description": "Reads and prints the content of the current webpage.",
   "permissions": [
+    "identity",
+    "identity.email",
     "activeTab",
     "scripting",
     "downloads",

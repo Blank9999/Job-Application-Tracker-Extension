@@ -3,13 +3,19 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     const pageTitle = request.title;
     const pageUrl = request.url;
     const jobData = request.data;
+    const mail = request.email;
 
     fetch("http://127.0.0.1:5000/save-title", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: pageTitle, url: pageUrl, data: jobData }),
+      body: JSON.stringify({
+        title: pageTitle,
+        url: pageUrl,
+        data: jobData,
+        email: mail,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -28,21 +34,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       console.error("Error fetching job details:", response.statusText);
       return;
     }
-
-    // fetch("http://127.0.0.1:5000/fetch-title", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ fileId: file_id }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log("Title saved successfully:", data);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error sending title to Flask backend:", error);
-    //   });
   } else if (request.action === "sendToMl") {
     const page_content = request.pageContent;
 
@@ -76,5 +67,48 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       .catch((error) => {
         console.error("Error sending title to Flask backend:", error);
       });
+  } else if (request.action === "getUserInfo") {
+    chrome.identity.getProfileUserInfo((userInfo) => {
+      if (chrome.runtime.lastError) {
+        console.error(
+          "Error fetching email:",
+          chrome.runtime.lastError.message
+        );
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "userInfoResponse",
+            success: false,
+            error: chrome.runtime.lastError.message,
+          });
+        });
+        return;
+
+        // sendResponse({
+        //   success: false,
+        //   error: chrome.runtime.lastError.message,
+        // });
+        // return;
+      }
+
+      const email = userInfo.email || "unknown@example.com"; // Fallback if email is unavailable
+      console.log("Fetched email for addToNewFile:", email);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "userInfoResponse",
+          success: true,
+          email: email,
+        });
+      });
+
+      // sendResponse({
+      //   success: true,
+      //   email: email,
+      // });
+    });
+
+    // Return true to indicate the response will be sent asynchronously
+    return true;
   }
 });
