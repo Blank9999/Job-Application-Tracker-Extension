@@ -5,10 +5,6 @@ let isJobSiteContent = false;
 (function () {
   // Patterns to match job-related URLs
 
-  function fetchUserEmail() {
-    chrome.runtime.sendMessage({ action: "fetchGmail" })
-  }
-
   function createPopup() {
     const popup = document.createElement("div");
     popup.id = "jobPopup";
@@ -35,7 +31,7 @@ let isJobSiteContent = false;
     popup.appendChild(closeButton);
 
     closeButton.addEventListener("click", () => {
-        popup.style.display = "none";
+      popup.style.display = "none";
     });
 
     const content = document.createElement("div");
@@ -47,16 +43,17 @@ let isJobSiteContent = false;
     <button id="openExistingFile" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open your Files</button>
   `;
 
+    // Append the content to the popup
     popup.appendChild(content);
     document.body.appendChild(popup);
 
     document
-        .getElementById("createNewFileBtn")
-        .addEventListener("click",createJobForm);
+      .getElementById("createNewFileBtn")
+      .addEventListener("click", createJobForm);
 
     document
-        .getElementById("openFileBtn")
-        .addEventListener("click", openJobForm);
+      .getElementById("openFileBtn")
+      .addEventListener("click", openJobForm);
 
     document
       .getElementById("openExistingFile")
@@ -67,38 +64,42 @@ let isJobSiteContent = false;
         );
         const fileNames = await response.json();
 
-            popup.innerHTML = `
+        popup.innerHTML = `
           <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Job Application</div>
           <p style="margin: 0;">These are your files. Select one to view all your applications:</p>
           <select id="exitingFileName" style="width: 100%; padding: 10px; margin-bottom: 10px;">
             ${fileNames
-                .map(
-                    (file) =>
-                        `<option value="${file.id}">${file.file_name}</option>`
-                )
-                .join("")}
+              .map(
+                (file) =>
+                  `<option value="${file.id}">${file.file_name}</option>`
+              )
+              .join("")}
           </select>
           <button id="openUserFiles" style="margin-top: 10px; padding: 10px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Open</button>
           <button id="goBack" style="margin-top: 10px; padding: 10px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Go Back</button>
         `;
 
-            document
-                .getElementById("openUserFiles")
-                .addEventListener("click", openUserFiles);
+        // Add event listeners for new buttons
+        // document
+        //   .getElementById("openUserFiles")
+        //   .addEventListener("click", () => {
+        //     alert("File opened!");
+        //   });
 
-            document
-                .getElementById("goBack")
-                .addEventListener("click", () => {
-                    popup.remove(); // Remove the current popup
-                    createPopup(); // Recreate the original popup
-                    document.getElementById("jobPopup").style.display = "block"; // Show the recreated popup
-                });
-        });
+        document
+          .getElementById("openUserFiles")
+          .addEventListener("click", openUserFiles);
 
-    // Display the popup
-    popup.style.display = "block";
-}
+        document
+          .getElementById("goBack")
+          .addEventListener("click", createPopup);
+      });
 
+    // Add click event for the button
+    document.getElementById("popupButton").addEventListener("click", () => {
+      alert("Popup action triggered!");
+    });
+  }
 
   async function createJobForm() {
     await sendToMlModel();

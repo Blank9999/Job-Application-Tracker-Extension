@@ -1,5 +1,3 @@
-
-
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.action === "addToNewFile") {
     const pageTitle = request.title;
@@ -12,7 +10,12 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: pageTitle, url: pageUrl, data: jobData }),
+      body: JSON.stringify({
+        title: pageTitle,
+        url: pageUrl,
+        data: jobData,
+        email: mail,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
