@@ -60,7 +60,7 @@ let isJobSiteContent = false;
       .addEventListener("click", async () => {
         const email = await getUserInfo();
         const response = await fetch(
-          `http://127.0.0.1:5000/file-name?email=${email}`
+          `http://3.86.144.244:5000/file-name?email=${email}`
         );
         const fileNames = await response.json();
 
