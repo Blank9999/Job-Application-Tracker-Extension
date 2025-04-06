@@ -64,7 +64,7 @@ pip install -r requirements.txt
 - Enable Developer mode (top right)
 - Click Load unpacked
 - Select the Job-Application-Tracker-Extension directory
-- 
+
 ### 6. Run the Flask backend
 ```bash
 python jobParser.py
