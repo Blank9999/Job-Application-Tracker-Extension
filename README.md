@@ -1,4 +1,4 @@
-# Job-Application-Tracker-Extension
+# Jobify
 
 Jobify is a Chrome extension designed to streamline your job application tracking process. It detects job application pages, auto-saves relevant job information, and utilizes powerful AI to extract key job details—all while keeping your data neatly organized. Ideal for job seekers looking to simplify and automate their job search workflow.
 
