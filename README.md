@@ -28,3 +28,46 @@ Jobify solves the problem of manually tracking job applications and entering job
 ```bash
 git clone https://github.com/Blank9999/Job-Application-Tracker-Extension.git
 cd Job-Application-Tracker-Extension
+```
+
+### 2. Install frontend dependencies
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+```bash
+GROQ_API_KEY=your_groq_api_key_here
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_key_here
+```
+
+### 4. Install backend dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Load the Chrome Extension
+1.Open Chrome and go to chrome://extensions/
+2.Enable Developer mode (top right)
+3.Click Load unpacked
+4.Select the Job-Application-Tracker-Extension directory
+
+### 6. Run the Flask backend
+```bash
+python jobParser.py
+```
+
+## ✨ Future Improvements
+
+- 🔄 Real-time job updates and sync.
+- 📈 Analytics dashboard for applied jobs.
+- 🗂️ Job categorization with tags and filters.
+- 💾 **Supabase Integration**: Saves parsed job data to Supabase for persistent storage.
+- 📅 Calendar integration to track follow-ups and deadlines.
+
+## 🙏 Acknowledgments
+
+- Thanks to Groq for their lightning-fast LPU APIs.
+- Inspired by the need to simplify job applications and reduce repetitive tracking efforts.
+- Big shoutout to the open-source tools and the job-seeking community for inspiration.
