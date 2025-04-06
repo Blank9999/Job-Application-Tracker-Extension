@@ -23,3 +23,8 @@ Jobify solves the problem of manually tracking job applications and entering job
 - **Hosting**: AWS EC2
 
 ## 🚀 Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Blank9999/Job-Application-Tracker-Extension.git
+cd Job-Application-Tracker-Extension
