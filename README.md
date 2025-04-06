@@ -6,6 +6,17 @@ Jobify is a Chrome extension designed to streamline your job application trackin
 
 Jobify solves the problem of manually tracking job applications and entering job details into spreadsheets.It eliminates the tedious process of copying and pasting information from job listings into a Google Sheet by automatically detecting job application pages, saving relevant job details, and organizing them for easy access.
 
+## 📸 Demo
+
+![IMG_4944](https://github.com/user-attachments/assets/337e47d1-e948-4fc3-8eb5-629135c785df)
+
+![IMG_4945](https://github.com/user-attachments/assets/b8888135-0d4f-4214-abd6-a90d6e4659ce)
+
+![IMG_4949](https://github.com/user-attachments/assets/68dad1c6-9922-4dcf-8c64-bc8b90554b07)
+
+![IMG_4947](https://github.com/user-attachments/assets/bd413bdc-0b84-4b90-8169-f4643a307e63)
+
+
 ## ✨ Features
 
 - 🔍 **Auto Detection**: Automatically detects job application pages.
