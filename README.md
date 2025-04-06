@@ -59,11 +59,12 @@ pip install -r requirements.txt
 ```
 
 ### 5. Load the Chrome Extension
-1.Open Chrome and go to chrome://extensions/
-2.Enable Developer mode (top right)
-3.Click Load unpacked
-4.Select the Job-Application-Tracker-Extension directory
 
+- Open Chrome and go to chrome://extensions/
+- Enable Developer mode (top right)
+- Click Load unpacked
+- Select the Job-Application-Tracker-Extension directory
+- 
 ### 6. Run the Flask backend
 ```bash
 python jobParser.py
